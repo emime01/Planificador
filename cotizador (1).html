@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cotizador — Soportes Publicitarios</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root {
+  --bg: #F4F2EE;
+  --surface: #FFFFFF;
+  --surface2: #F8F7F4;
+  --border: rgba(0,0,0,0.08);
+  --border-med: rgba(0,0,0,0.14);
+  --text: #1A1A1A;
+  --text2: #5C5C5C;
+  --text3: #9A9A9A;
+  --accent: #E85D24;
+  --accent-light: #FDF0EB;
+  --accent-dark: #C44A18;
+  --digital: #2563EB;
+  --digital-bg: #EFF6FF;
+  --estatica: #16A34A;
+  --estatica-bg: #F0FDF4;
+  --bus: #D97706;
+  --bus-bg: #FFFBEB;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+h1,h2,h3,h4 { font-family: 'Syne', sans-serif; }
+
+/* ===== LAYOUT ===== */
+.app {
+  display: grid;
+  grid-template-columns: 290px 1fr 340px;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sidebar-top {
+  padding: 20px 16px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-top h2 {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 12px;
+}
+.search-wrap {
+  position: relative;
+}
+.search-wrap svg {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: .4;
+}
+.search-input {
+  width: 100%;
+  padding: 8px 10px 8px 32px;
+  border: 1px solid var(--border-med);
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s;
+}
+.search-input:focus { border-color: var(--accent); }
+.cat-pills {
+  display: flex;
+  gap: 5px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.cat-pill {
+  padding: 4px 11px;
+  border-radius: 20px;
+  border: 1px solid var(--border-med);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text2);
+  transition: all .15s;
+  font-family: 'DM Sans', sans-serif;
+}
+.cat-pill.active[data-cat="all"],
+.cat-pill:hover[data-cat="all"] { background: var(--text); color: white; border-color: var(--text); }
+.cat-pill.active[data-cat="Digital"],
+.cat-pill:hover[data-cat="Digital"] { background: var(--digital-bg); color: var(--digital); border-color: var(--digital); }
+.cat-pill.active[data-cat="Estática"],
+.cat-pill:hover[data-cat="Estática"] { background: var(--estatica-bg); color: var(--estatica); border-color: var(--estatica); }
+.cat-pill.active[data-cat="Bus"],
+.cat-pill:hover[data-cat="Bus"] { background: var(--bus-bg); color: var(--bus); border-color: var(--bus); }
+
+.support-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  scrollbar-width: thin;
+}
+.support-list::-webkit-scrollbar { width: 4px; }
+.support-list::-webkit-scrollbar-track { background: transparent; }
+.support-list::-webkit-scrollbar-thumb { background: var(--border-med); border-radius: 4px; }
+
+.s-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 12px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  background: var(--surface);
+  transition: all .15s;
+  position: relative;
+}
+.s-card:hover {
+  border-color: var(--border-med);
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+.s-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+}
+.cat-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+.cat-dot.Digital { background: var(--digital); }
+.cat-dot.Estática { background: var(--estatica); }
+.cat-dot.Bus { background: var(--bus); }
+.s-name {
+  font-size: 13px;
+  font-weight: 500;
+  flex: 1;
+  line-height: 1.3;
+}
+.add-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--border-med);
+  background: var(--surface2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all .15s;
+  color: var(--text3);
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1;
+}
+.s-card:hover .add-btn {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.s-price {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 3px;
+  font-weight: 500;
+}
+.s-comment {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+.s-location {
+  font-size: 11px;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+/* ===== TOOLTIP ===== */
+.tooltip {
+  position: fixed;
+  z-index: 9999;
+  width: 260px;
+  background: var(--surface);
+  border: 1px solid var(--border-med);
+  border-radius: var(--radius);
+  padding: 0;
+  box-shadow: var(--shadow-lg);
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.96);
+  transition: opacity .15s, transform .15s;
+  overflow: hidden;
+}
+.tooltip.show { opacity: 1; transform: scale(1); }
+.tooltip-img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  display: block;
+  background: var(--surface2);
+}
+.tooltip-body { padding: 12px; }
+.tooltip-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text2);
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border);
+}
+.tooltip-row:last-child { border-bottom: none; }
+.tooltip-val { font-weight: 500; color: var(--text); }
+
+/* ===== CENTER ===== */
+.center {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+}
+.center-header {
+  padding: 18px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.center-header-left h1 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+.center-header-left p {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+.header-actions { display: flex; gap: 8px; align-items: center; }
+.btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+  border: none;
+}
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border-med);
+  color: var(--text2);
+}
+.btn-ghost:hover { background: var(--surface2); }
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+.btn-primary:hover { background: var(--accent-dark); }
+
+.charts-scroll { flex: 1; overflow-y: auto; padding: 20px 24px; scrollbar-width: thin; }
+
+/* Empty state */
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 40px;
+}
+.empty-icon {
+  width: 72px;
+  height: 72px;
+  background: var(--surface);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+}
+.empty-state h3 { font-size: 16px; margin-bottom: 6px; }
+.empty-state p { color: var(--text3); font-size: 13px; max-width: 280px; }
+
+/* Chart cards */
+.chart-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+.chart-card-full { margin-bottom: 16px; }
+.chart-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.chart-note {
+  font-size: 11px;
+  color: var(--text3);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.note-badge {
+  background: var(--accent-light);
+  color: var(--accent);
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+}
+.chart-wrap { position: relative; }
+.chart-wrap canvas { display: block; }
+
+/* Donut center */
+.donut-wrap { position: relative; height: 180px; }
+.donut-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+.donut-center .dc-val { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
+.donut-center .dc-lbl { font-size: 10px; color: var(--text3); }
+
+/* ===== RIGHT PANEL ===== */
+.right-panel {
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.right-top {
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.right-top h2 { font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+.kpi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.kpi-box {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+}
+.kpi-box.full { grid-column: 1 / -1; }
+.kpi-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.kpi-val { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; line-height: 1; }
+.kpi-val.big { font-size: 24px; color: var(--accent); }
+
+.items-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  scrollbar-width: thin;
+}
+.items-scroll::-webkit-scrollbar { width: 4px; }
+.items-scroll::-webkit-scrollbar-thumb { background: var(--border-med); border-radius: 4px; }
+
+.no-items {
+  text-align: center;
+  color: var(--text3);
+  font-size: 12px;
+  padding: 40px 20px;
+  line-height: 1.8;
+}
+
+.item-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 8px;
+  position: relative;
+}
+.item-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.item-name { font-size: 12px; font-weight: 600; line-height: 1.3; padding-right: 20px; }
+.item-remove {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text3);
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  transition: color .15s;
+}
+.item-remove:hover { color: #E02020; }
+.item-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.item-control-group label {
+  display: block;
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 3px;
+}
+.item-control-group input,
+.item-control-group select {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--border-med);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+}
+.item-control-group input:focus,
+.item-control-group select:focus { border-color: var(--accent); }
+.item-totals {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.item-sub { font-size: 10px; color: var(--text3); line-height: 1.6; }
+.item-price { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--accent); }
+
+/* Summary */
+.summary-box {
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.summary-total-label { font-size: 13px; font-weight: 500; }
+.summary-total-val { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; }
+.extras-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.extra-chip {
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+}
+.extra-chip.blue { background: #EFF6FF; }
+.extra-chip.blue .ec-lbl { color: #1D4ED8; }
+.extra-chip.blue .ec-val { color: #1E40AF; }
+.extra-chip.green { background: #F0FDF4; }
+.extra-chip.green .ec-lbl { color: #15803D; }
+.extra-chip.green .ec-val { color: #166534; }
+.extra-chip.amber { background: #FFFBEB; }
+.extra-chip.amber .ec-lbl { color: #B45309; }
+.extra-chip.amber .ec-val { color: #92400E; }
+.ec-lbl { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px; }
+.ec-val { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.4);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: 380px;
+  max-width: 95vw;
+  box-shadow: var(--shadow-lg);
+  animation: modalIn .18s ease;
+}
+@keyframes modalIn {
+  from { opacity:0; transform: scale(.95) translateY(8px); }
+  to { opacity:1; transform: scale(1) translateY(0); }
+}
+.modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+.modal-header h3 { font-size: 16px; font-weight: 700; line-height: 1.2; }
+.modal-close { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 20px; line-height: 1; padding: 0; }
+.modal-close:hover { color: var(--text); }
+.modal-field { margin-bottom: 14px; }
+.modal-field label { display: block; font-size: 12px; color: var(--text2); font-weight: 500; margin-bottom: 5px; }
+.modal-field input, .modal-field select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border-med);
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+}
+.modal-field input:focus, .modal-field select:focus { border-color: var(--accent); }
+.modal-field .helper { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.modal-preview {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+}
+.modal-preview-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text2);
+  padding: 3px 0;
+}
+.modal-preview-row .mpv { font-weight: 600; color: var(--text); }
+.modal-preview-row.total .mpv { color: var(--accent); font-size: 15px; font-family: 'Syne', sans-serif; }
+.modal-actions { display: flex; gap: 8px; }
+.modal-actions .btn { flex: 1; }
+
+/* Loading */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px;
+  color: var(--text3);
+  font-size: 13px;
+}
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border-med);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Scrollbar */
+.charts-scroll::-webkit-scrollbar { width: 4px; }
+.charts-scroll::-webkit-scrollbar-thumb { background: var(--border-med); border-radius: 4px; }
+
+/* Category labels */
+.cat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 4px;
+}
+.cat-badge.Digital { background: var(--digital-bg); color: var(--digital); }
+.cat-badge.Estática { background: var(--estatica-bg); color: var(--estatica); }
+.cat-badge.Bus { background: var(--bus-bg); color: var(--bus); }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--text);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0;
+  transition: all .25s;
+  pointer-events: none;
+  z-index: 9999;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ===== SIDEBAR ===== -->
+  <div class="sidebar">
+    <div class="sidebar-top">
+      <h2>Catálogo</h2>
+      <div class="search-wrap">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M10 10L12.5 12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        <input class="search-input" id="searchInput" placeholder="Buscar soporte..." oninput="filterSupports()">
+      </div>
+      <div class="cat-pills">
+        <button class="cat-pill active" data-cat="all" onclick="setCat(this,'all')">Todos</button>
+        <button class="cat-pill" data-cat="Digital" onclick="setCat(this,'Digital')">Digital</button>
+        <button class="cat-pill" data-cat="Estática" onclick="setCat(this,'Estática')">Estática</button>
+        <button class="cat-pill" data-cat="Bus" onclick="setCat(this,'Bus')">Bus</button>
+      </div>
+    </div>
+    <div class="support-list" id="supportList">
+      <div class="loading"><div class="spinner"></div> Cargando soportes...</div>
+    </div>
+  </div>
+
+  <!-- ===== CENTER ===== -->
+  <div class="center">
+    <div class="center-header">
+      <div class="center-header-left">
+        <h1>Armado de propuesta</h1>
+        <p>Visualización en tiempo real</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-ghost" onclick="clearAll()">Limpiar todo</button>
+        <button class="btn btn-primary" onclick="exportPDF()">⬇ Exportar PDF</button>
+      </div>
+    </div>
+    <div class="charts-scroll" id="chartsScroll">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <rect x="2" y="16" width="6" height="10" rx="2" fill="#D4D0C8"/>
+            <rect x="11" y="10" width="6" height="16" rx="2" fill="#B8B4AA"/>
+            <rect x="20" y="4" width="6" height="22" rx="2" fill="#9A9590"/>
+          </svg>
+        </div>
+        <h3>Empezá tu propuesta</h3>
+        <p>Seleccioná soportes del catálogo para ver métricas y gráficas en tiempo real</p>
+      </div>
+      <div id="chartsContent" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- ===== RIGHT PANEL ===== -->
+  <div class="right-panel">
+    <div class="right-top">
+      <h2>Cotización</h2>
+      <div class="kpi-row">
+        <div class="kpi-box"><div class="kpi-lbl">Impactos totales</div><div class="kpi-val" id="kpiImpactos">—</div></div>
+        <div class="kpi-box"><div class="kpi-lbl">CPM promedio</div><div class="kpi-val" id="kpiCPM">—</div></div>
+        <div class="kpi-box full"><div class="kpi-lbl">Arrendamiento campaña</div><div class="kpi-val big" id="kpiTotal">—</div></div>
+      </div>
+    </div>
+    <div class="items-scroll" id="itemsScroll">
+      <div class="no-items" id="noItems">Agregá soportes desde el catálogo<br>para armar tu propuesta</div>
+    </div>
+    <div class="summary-box" id="summaryBox" style="display:none"></div>
+  </div>
+
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip"></div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">Configurar soporte</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div id="modalFields"></div>
+    <div class="modal-preview" id="modalPreview"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmAdd()">Agregar a propuesta</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== CONFIG =====
+const SUPABASE_URL = 'https://ghvwcmeplosopqznhmxy.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_T6Q_DuAi7OB9ya7WuLRNBg_7XAVZd6q';
+const IVA_RATE = 0.22;
+
+// ===== STATE =====
+let allSupports = [];
+let selectedItems = []; // {soporte, semanas, salidasElegidas, cantidadSoportes}
+let currentCat = 'all';
+let pendingSupport = null;
+let charts = {};
+
+// ===== SUPABASE FETCH =====
+async function fetchSupports() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/soportes?activo=eq.true&order=categoria,nombre`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    });
+    if (!res.ok) throw new Error('Error al cargar');
+    allSupports = await res.json();
+    renderSupportList();
+  } catch(e) {
+    document.getElementById('supportList').innerHTML =
+      `<div style="padding:20px;text-align:center;color:#E85D24;font-size:12px">Error al conectar con la base de datos.<br><small>${e.message}</small></div>`;
+  }
+}
+
+// ===== RENDER SUPPORT LIST =====
+function renderSupportList() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const list = allSupports.filter(s => {
+    const matchCat = currentCat === 'all' || s.categoria === currentCat;
+    const matchSearch = s.nombre.toLowerCase().includes(search) ||
+                        s.ubicacion.toLowerCase().includes(search) ||
+                        (s.comentario||'').toLowerCase().includes(search);
+    return matchCat && matchSearch;
+  });
+
+  if (!list.length) {
+    document.getElementById('supportList').innerHTML =
+      `<div style="padding:30px;text-align:center;color:var(--text3);font-size:12px">No se encontraron soportes</div>`;
+    return;
+  }
+
+  document.getElementById('supportList').innerHTML = list.map(s => `
+    <div class="s-card"
+      onmouseenter="showTooltip(event, '${s.id}')"
+      onmouseleave="hideTooltip()"
+      onmousemove="moveTooltip(event)">
+      <div class="s-card-top">
+        <div class="cat-dot ${s.categoria}"></div>
+        <div style="flex:1">
+          <div class="s-name">${s.nombre}</div>
+          <div class="s-price">$${fmt(s.precio_semanal)} / semana${s.iva_arrendamiento ? ' + IVA' : ''}</div>
+          <div class="s-comment">${s.comentario || ''}</div>
+        </div>
+        <button class="add-btn" onclick="openModal('${s.id}'); event.stopPropagation()" title="Agregar">+</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterSupports() { renderSupportList(); }
+function setCat(el, cat) {
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  currentCat = cat;
+  renderSupportList();
+}
+
+// ===== TOOLTIP =====
+function showTooltip(e, id) {
+  const s = allSupports.find(x => x.id === id);
+  if (!s) return;
+  const tip = document.getElementById('tooltip');
+
+  const rows = [
+    ['Categoría', s.categoria],
+    ['Ubicación', s.ubicacion],
+    ['Precio semanal', `$${fmt(s.precio_semanal)}${s.iva_arrendamiento ? ' + IVA' : ''}`],
+    s.salidas_por_hora ? ['Salidas/hora', s.salidas_por_hora] : null,
+    s.horas_encendido ? ['Horas encendido', `${s.horas_encendido}h/día`] : null,
+    s.impactos_mensuales ? ['Impactos mensuales', fmt(s.impactos_mensuales)] : null,
+    s.costo_produccion ? ['Costo producción', `$${fmt(s.costo_produccion)} + IVA`] : null,
+    s.impuestos_municipales ? ['Imp. municipales', `$${fmt(s.impuestos_municipales)}`] : null,
+  ].filter(Boolean);
+
+  tip.innerHTML = `
+    <img class="tooltip-img" src="${s.url_imagen || ''}" alt="${s.nombre}" onerror="this.style.display='none'">
+    <div class="tooltip-body">
+      <div class="tooltip-name">${s.nombre}</div>
+      ${rows.map(([l,v]) => `<div class="tooltip-row"><span>${l}</span><span class="tooltip-val">${v}</span></div>`).join('')}
+    </div>`;
+  tip.classList.add('show');
+  moveTooltip(e);
+}
+function moveTooltip(e) {
+  const tip = document.getElementById('tooltip');
+  let x = e.clientX + 14, y = e.clientY - 10;
+  if (x + 270 > window.innerWidth) x = e.clientX - 274;
+  if (y + 360 > window.innerHeight) y = window.innerHeight - 370;
+  tip.style.left = x + 'px';
+  tip.style.top = y + 'px';
+}
+function hideTooltip() {
+  document.getElementById('tooltip').classList.remove('show');
+}
+
+// ===== MODAL =====
+function openModal(id) {
+  const s = allSupports.find(x => x.id === id);
+  if (!s) return;
+  pendingSupport = s;
+  document.getElementById('modalTitle').textContent = s.nombre;
+
+  const isBusUnit = s.tipo === 'estatico_bus' && s.categoria === 'Bus';
+  const isBannerShop = s.tipo === 'banner_shopping';
+  const hasCircuito = s.tipo === 'circuito';
+  const hasLed = s.tipo === 'led';
+  const hasImpactos = !!s.impactos_mensuales;
+
+  // Default salidas
+  const defaultSalidas = hasLed ? 30 : (hasCircuito ? 10 : null);
+  const stepSalidas = hasLed ? 30 : 10;
+
+  let fields = `
+    <div class="modal-field">
+      <label>Duración de la campaña (semanas)</label>
+      <input type="number" id="mSemanas" min="1" max="52" value="4" oninput="updateModalPreview()">
+    </div>`;
+
+  if (hasLed || hasCircuito) {
+    fields += `
+    <div class="modal-field">
+      <label>Cantidad de salidas</label>
+      <input type="number" id="mSalidas" min="${stepSalidas}" step="${stepSalidas}" value="${defaultSalidas}" oninput="updateModalPreview()">
+      <div class="helper">Se venden de ${stepSalidas} en ${stepSalidas}. Mínimo: ${stepSalidas} salidas.</div>
+    </div>`;
+  }
+
+  if (isBusUnit || isBannerShop) {
+    fields += `
+    <div class="modal-field">
+      <label>Cantidad de ${isBusUnit ? 'unidades (buses)' : 'banners'}</label>
+      <input type="number" id="mCantidad" min="1" value="1" oninput="updateModalPreview()">
+    </div>`;
+  }
+
+  document.getElementById('modalFields').innerHTML = fields;
+  updateModalPreview();
+  document.getElementById('modalOverlay').style.display = 'flex';
+}
+
+function updateModalPreview() {
+  const s = pendingSupport;
+  if (!s) return;
+  const semanas = parseInt(document.getElementById('mSemanas')?.value) || 1;
+  const salidasEl = document.getElementById('mSalidas');
+  const cantidadEl = document.getElementById('mCantidad');
+
+  let salidasElegidas = salidasEl ? parseInt(salidasEl.value) || 0 : null;
+  let cantidad = cantidadEl ? parseInt(cantidadEl.value) || 1 : 1;
+
+  // Calcular multiplicador de precio
+  let multiplier = 1;
+  if (s.tipo === 'circuito' && salidasElegidas) {
+    multiplier = Math.ceil(salidasElegidas / 10);
+    salidasElegidas = multiplier * 10;
+  } else if (s.tipo === 'led' && salidasElegidas) {
+    multiplier = Math.ceil(salidasElegidas / 30);
+    salidasElegidas = multiplier * 30;
+  }
+
+  const arrBase = s.precio_semanal * semanas * multiplier * cantidad;
+  const ivaArr = s.iva_arrendamiento ? arrBase * IVA_RATE : 0;
+  const prod = s.costo_produccion ? s.costo_produccion * cantidad : 0;
+  const ivaProd = prod * IVA_RATE;
+  const impMun = s.impuestos_municipales ? s.impuestos_municipales * semanas * cantidad : 0;
+
+  // Salidas totales
+  const salidasPorHora = s.salidas_por_hora || 0;
+  const horasEnc = s.horas_encendido || 0;
+  const diasCamp = semanas * 7;
+  const salidasTotales = salidasPorHora && horasEnc && salidasElegidas
+    ? salidasElegidas * horasEnc * diasCamp / (s.tipo === 'led' ? salidasPorHora * 30 : 10) * salidasPorHora
+    : null;
+
+  // Impactos
+  const meses = semanas / 4.33;
+  const impactos = s.impactos_mensuales ? Math.round(s.impactos_mensuales * meses * cantidad * multiplier) : null;
+
+  let rows = [
+    [`Arrendamiento (${semanas} sem${multiplier > 1 ? ` × ${multiplier}` : ''}${cantidad > 1 ? ` × ${cantidad}` : ''})`, `$${fmt(arrBase)}`],
+  ];
+  if (ivaArr) rows.push([`IVA arrendamiento (22%)`, `$${fmt(ivaArr)}`]);
+  if (prod) rows.push([`Producción + IVA`, `$${fmt(prod + ivaProd)}`]);
+  if (impMun) rows.push([`Imp. municipales`, `$${fmt(impMun)}`]);
+  if (impactos) rows.push([`Impactos estimados`, fmt(impactos)]);
+
+  const total = arrBase + ivaArr + prod + ivaProd + impMun;
+  rows.push(['TOTAL', `$${fmt(total)}`]);
+
+  document.getElementById('modalPreview').innerHTML = rows.map((r, i) =>
+    `<div class="modal-preview-row${i === rows.length-1 ? ' total' : ''}">
+      <span>${r[0]}</span><span class="mpv">${r[1]}</span>
+    </div>`
+  ).join('');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').style.display = 'none';
+  pendingSupport = null;
+}
+
+function confirmAdd() {
+  const s = pendingSupport;
+  if (!s) return;
+  const semanas = parseInt(document.getElementById('mSemanas')?.value) || 1;
+  const salidasEl = document.getElementById('mSalidas');
+  const cantidadEl = document.getElementById('mCantidad');
+  let salidasElegidas = salidasEl ? parseInt(salidasEl.value) || null : null;
+  let cantidad = cantidadEl ? parseInt(cantidadEl.value) || 1 : 1;
+
+  // Snap to step
+  if (s.tipo === 'circuito' && salidasElegidas) salidasElegidas = Math.ceil(salidasElegidas / 10) * 10;
+  if (s.tipo === 'led' && salidasElegidas) salidasElegidas = Math.ceil(salidasElegidas / 30) * 30;
+
+  selectedItems.push({ soporte: s, semanas, salidasElegidas, cantidadSoportes: cantidad, uid: Date.now() });
+  closeModal();
+  renderItems();
+  renderCharts();
+  showToast(`${s.nombre} agregado`);
+}
+
+// ===== CALCULATE ITEM =====
+function calcItem(item) {
+  const s = item.soporte;
+  const { semanas, salidasElegidas, cantidadSoportes: cantidad } = item;
+  let multiplier = 1;
+  if (s.tipo === 'circuito' && salidasElegidas) multiplier = salidasElegidas / 10;
+  if (s.tipo === 'led' && salidasElegidas) multiplier = salidasElegidas / 30;
+
+  const arrBase = s.precio_semanal * semanas * multiplier * cantidad;
+  const ivaArr = s.iva_arrendamiento ? arrBase * IVA_RATE : 0;
+  const prod = s.costo_produccion ? s.costo_produccion * cantidad : 0;
+  const ivaProd = prod * IVA_RATE;
+  const impMun = s.impuestos_municipales ? s.impuestos_municipales * semanas * cantidad : 0;
+  const meses = semanas / 4.33;
+  const impactos = s.impactos_mensuales ? Math.round(s.impactos_mensuales * meses * cantidad * multiplier) : 0;
+  const totalCost = arrBase + ivaArr + prod + ivaProd + impMun;
+  const cpm = impactos > 0 ? (totalCost / impactos) * 1000 : 0;
+
+  return { arrBase, ivaArr, prod, ivaProd, impMun, impactos, totalCost, multiplier, cpm };
+}
+
+// ===== RENDER ITEMS =====
+function renderItems() {
+  const scroll = document.getElementById('itemsScroll');
+  const noItems = document.getElementById('noItems');
+  const summaryBox = document.getElementById('summaryBox');
+
+  if (!selectedItems.length) {
+    noItems.style.display = 'block';
+    summaryBox.style.display = 'none';
+    document.getElementById('kpiImpactos').textContent = '—';
+    document.getElementById('kpiCPM').textContent = '—';
+    document.getElementById('kpiTotal').textContent = '—';
+    return;
+  }
+  noItems.style.display = 'none';
+
+  let totalImpactos = 0, totalArr = 0, totalIVAArr = 0, totalProd = 0, totalMun = 0;
+
+  scroll.querySelectorAll('.item-card').forEach(e => e.remove());
+
+  selectedItems.forEach((item, idx) => {
+    const s = item.soporte;
+    const c = calcItem(item);
+    totalImpactos += c.impactos;
+    totalArr += c.arrBase;
+    totalIVAArr += c.ivaArr;
+    totalProd += c.prod + c.ivaProd;
+    totalMun += c.impMun;
+
+    const hasCircuito = s.tipo === 'circuito';
+    const hasLed = s.tipo === 'led';
+    const isBusOrShop = (s.tipo === 'estatico_bus' && s.categoria === 'Bus') || s.tipo === 'banner_shopping';
+    const stepSalidas = hasLed ? 30 : 10;
+
+    const card = document.createElement('div');
+    card.className = 'item-card';
+    card.dataset.uid = item.uid;
+    card.innerHTML = `
+      <div class="cat-badge ${s.categoria}">${s.categoria}</div>
+      <div class="item-name">${s.nombre}</div>
+      <button class="item-remove" onclick="removeItem(${item.uid})" title="Eliminar">×</button>
+      <div class="item-controls">
+        <div class="item-control-group">
+          <label>Semanas</label>
+          <input type="number" min="1" max="52" value="${item.semanas}" onchange="updateItem(${item.uid},'semanas',this.value)">
+        </div>
+        ${hasCircuito || hasLed ? `
+        <div class="item-control-group">
+          <label>Salidas (${stepSalidas} en ${stepSalidas})</label>
+          <input type="number" min="${stepSalidas}" step="${stepSalidas}" value="${item.salidasElegidas||stepSalidas}" onchange="updateItem(${item.uid},'salidas',this.value)">
+        </div>` : ''}
+        ${isBusOrShop ? `
+        <div class="item-control-group">
+          <label>Cantidad unidades</label>
+          <input type="number" min="1" value="${item.cantidadSoportes||1}" onchange="updateItem(${item.uid},'cantidad',this.value)">
+        </div>` : ''}
+      </div>
+      <div class="item-totals">
+        <div class="item-sub">
+          ${c.impactos ? `${fmt(c.impactos)} impactos<br>` : ''}
+          ${c.cpm ? `CPM $${c.cpm.toFixed(2)}` : ''}
+        </div>
+        <div class="item-price">$${fmt(c.totalCost)}</div>
+      </div>`;
+    scroll.insertBefore(card, summaryBox);
+  });
+
+  // KPIs
+  const grandTotal = totalArr + totalIVAArr + totalProd + totalMun;
+  const avgCPM = totalImpactos > 0 ? (grandTotal / totalImpactos) * 1000 : 0;
+  document.getElementById('kpiImpactos').textContent = fmtM(totalImpactos);
+  document.getElementById('kpiCPM').textContent = avgCPM > 0 ? `$${avgCPM.toFixed(2)}` : '—';
+  document.getElementById('kpiTotal').textContent = `$${fmt(totalArr)}`;
+
+  // Summary extras
+  summaryBox.style.display = 'block';
+  const extras = [];
+  if (totalIVAArr > 0) extras.push({label:'IVA arrend.', val:`$${fmt(totalIVAArr)}`, cls:'blue'});
+  if (totalMun > 0) extras.push({label:'Imp. municipales', val:`$${fmt(totalMun)}`, cls:'amber'});
+  if (totalProd > 0) extras.push({label:'Prod. + instalación', val:`$${fmt(totalProd)}`, cls:'green'});
+
+  summaryBox.innerHTML = `
+    <div class="summary-total">
+      <span class="summary-total-label">Total campaña</span>
+      <span class="summary-total-val">$${fmt(grandTotal)}</span>
+    </div>
+    ${extras.length ? `<div class="extras-grid">
+      ${extras.map(e => `<div class="extra-chip ${e.cls}"><div class="ec-lbl">${e.label}</div><div class="ec-val">${e.val}</div></div>`).join('')}
+    </div>` : ''}`;
+}
+
+function updateItem(uid, field, val) {
+  const item = selectedItems.find(x => x.uid === uid);
+  if (!item) return;
+  if (field === 'semanas') item.semanas = Math.max(1, parseInt(val) || 1);
+  if (field === 'salidas') {
+    const step = item.soporte.tipo === 'led' ? 30 : 10;
+    item.salidasElegidas = Math.ceil((parseInt(val) || step) / step) * step;
+  }
+  if (field === 'cantidad') item.cantidadSoportes = Math.max(1, parseInt(val) || 1);
+  renderItems();
+  renderCharts();
+}
+
+function removeItem(uid) {
+  selectedItems = selectedItems.filter(x => x.uid !== uid);
+  renderItems();
+  renderCharts();
+}
+
+function clearAll() {
+  if (!selectedItems.length) return;
+  selectedItems = [];
+  renderItems();
+  renderCharts();
+}
+
+// ===== CHARTS =====
+function destroyChart(key) {
+  if (charts[key]) { charts[key].destroy(); delete charts[key]; }
+}
+
+function renderCharts() {
+  const content = document.getElementById('chartsContent');
+  const empty = document.getElementById('emptyState');
+
+  if (!selectedItems.length) {
+    content.style.display = 'none';
+    empty.style.display = 'flex';
+    Object.keys(charts).forEach(k => destroyChart(k));
+    return;
+  }
+  empty.style.display = 'none';
+  content.style.display = 'block';
+
+  // Group by category
+  const byCat = {};
+  selectedItems.forEach(item => {
+    const cat = item.soporte.categoria;
+    if (!byCat[cat]) byCat[cat] = [];
+    byCat[cat].push(item);
+  });
+
+  const cats = Object.keys(byCat);
+  const catColors = { 'Digital': '#2563EB', 'Estática': '#16A34A', 'Bus': '#D97706' };
+  const catLightColors = { 'Digital': '#DBEAFE', 'Estática': '#DCFCE7', 'Bus': '#FEF3C7' };
+
+  // Check what data we have
+  const hasImpactos = selectedItems.some(x => x.soporte.impactos_mensuales);
+  const hasSalidas = selectedItems.some(x => x.soporte.salidas_por_hora && x.soporte.horas_encendido);
+
+  // ---- Donut: inversión por categoría ----
+  const catInv = {};
+  cats.forEach(c => {
+    catInv[c] = byCat[c].reduce((sum, item) => sum + calcItem(item).arrBase, 0);
+  });
+  const totalInv = Object.values(catInv).reduce((a,b) => a+b, 0);
+
+  // ---- Donut: impactos por categoría ----
+  const catImp = {};
+  cats.forEach(c => {
+    catImp[c] = byCat[c].reduce((sum, item) => sum + calcItem(item).impactos, 0);
+  });
+  const totalImpAll = Object.values(catImp).reduce((a,b) => a+b, 0);
+
+  // ---- Bar: eficiencia CPM por soporte ----
+  const cpmLabels = [], cpmData = [], cpmColors = [];
+  selectedItems.forEach(item => {
+    const c = calcItem(item);
+    if (c.cpm > 0) {
+      cpmLabels.push(item.soporte.nombre.length > 20 ? item.soporte.nombre.substring(0,18)+'…' : item.soporte.nombre);
+      cpmData.push(parseFloat(c.cpm.toFixed(2)));
+      cpmColors.push(catColors[item.soporte.categoria]);
+    }
+  });
+
+  // ---- Bar: alcance por soporte ----
+  const alcLabels = [], alcData = [], alcColors = [];
+  selectedItems.filter(x => x.soporte.impactos_mensuales).forEach(item => {
+    const c = calcItem(item);
+    alcLabels.push(item.soporte.nombre.length > 20 ? item.soporte.nombre.substring(0,18)+'…' : item.soporte.nombre);
+    alcData.push(c.impactos);
+    alcColors.push(catColors[item.soporte.categoria]);
+  });
+
+  // ---- Line: proyección acumulada ----
+  const maxSemanas = Math.max(...selectedItems.map(x => x.semanas), 4);
+  const projLabels = [], projData = [];
+  for (let w = 1; w <= maxSemanas; w++) {
+    projLabels.push(`S${w}`);
+    let acc = 0;
+    selectedItems.forEach(item => {
+      if (!item.soporte.impactos_mensuales) return;
+      const c = calcItem(item);
+      const fraccion = Math.min(w, item.semanas) / item.semanas;
+      acc += Math.round(c.impactos * fraccion);
+    });
+    projData.push(acc);
+  }
+
+  // ---- Bar: inversión vs impactos por categoría ----
+  const efCats = cats;
+  const efInv = efCats.map(c => catInv[c]);
+  const efImp = efCats.map(c => catImp[c]);
+
+  // No-data notes
+  const noImpNote = selectedItems.filter(x => !x.soporte.impactos_mensuales).map(x => x.soporte.nombre);
+  const noSalNote = selectedItems.filter(x => !x.soporte.salidas_por_hora).map(x => x.soporte.nombre);
+
+  // Build HTML — destroy first, then set innerHTML, then init charts in next frame
+  Object.keys(charts).forEach(k => destroyChart(k));
+
+  content.innerHTML = `
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <div class="chart-title">Inversión por categoría</div>
+        <div class="chart-note">Arrendamiento base total</div>
+        <div class="donut-wrap" style="position:relative;height:180px">
+          <canvas id="cDonutInv" role="img" aria-label="Inversión por categoría"></canvas>
+          <div class="donut-center"><div class="dc-val">$${fmtK(totalInv)}</div><div class="dc-lbl">Total</div></div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Impactos por categoría</div>
+        <div class="chart-note">${!hasImpactos ? 'Sin datos de impactos en la selección' : `${fmtM(totalImpAll)} impactos totales`}
+          ${noImpNote.length && hasImpactos ? `<span class="note-badge">Sin datos: ${noImpNote.join(', ')}</span>` : ''}
+        </div>
+        ${hasImpactos ? `<div class="donut-wrap" style="position:relative;height:180px"><canvas id="cDonutImp" role="img" aria-label="Impactos por categoría"></canvas>
+          <div class="donut-center"><div class="dc-val">${fmtM(totalImpAll)}</div><div class="dc-lbl">Impactos</div></div></div>`
+        : `<div style="height:180px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px">Agregá soportes con datos de impactos</div>`}
+      </div>
+    </div>
+    ${hasImpactos ? `
+    <div class="chart-card chart-card-full">
+      <div class="chart-title">Proyección acumulada de impactos</div>
+      <div class="chart-note">Crecimiento a lo largo de la campaña
+        ${noImpNote.length ? `<span class="note-badge">No incluye: ${noImpNote.join(', ')}</span>` : ''}
+      </div>
+      <div class="chart-wrap" style="height:200px"><canvas id="cProj" role="img" aria-label="Proyección acumulada de impactos"></canvas></div>
+    </div>` : ''}
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <div class="chart-title">Eficiencia global</div>
+        <div class="chart-note">Inversión vs Impactos por categoría
+          ${noImpNote.length ? `<span class="note-badge">Sin imp.: ${noImpNote.join(', ')}</span>` : ''}
+        </div>
+        <div class="chart-wrap" style="height:200px"><canvas id="cEfic" role="img" aria-label="Eficiencia por categoría"></canvas></div>
+      </div>
+      ${alcData.length ? `
+      <div class="chart-card">
+        <div class="chart-title">Alcance por soporte</div>
+        <div class="chart-note">Impactos totales por soporte</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="cAlc" role="img" aria-label="Alcance por soporte"></canvas></div>
+      </div>` : ''}
+      ${cpmData.length ? `
+      <div class="chart-card${alcData.length ? '' : ''}">
+        <div class="chart-title">CPM por soporte</div>
+        <div class="chart-note">Costo por mil impactos (menor = mejor)</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="cCPM" role="img" aria-label="CPM por soporte"></canvas></div>
+      </div>` : ''}
+    </div>`;
+
+  // Wait one frame so innerHTML canvas elements are in the live DOM
+  requestAnimationFrame(() => {
+
+  // Donut inversión
+  charts.donutInv = new Chart(document.getElementById('cDonutInv'), {
+    type: 'doughnut',
+    data: {
+      labels: cats,
+      datasets: [{ data: efInv, backgroundColor: cats.map(c => catColors[c]), borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '68%',
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` $${fmt(ctx.raw)}` } } }
+    }
+  });
+
+  // Donut impactos
+  if (hasImpactos) {
+    charts.donutImp = new Chart(document.getElementById('cDonutImp'), {
+      type: 'doughnut',
+      data: {
+        labels: cats,
+        datasets: [{ data: efCats.map(c => catImp[c]), backgroundColor: cats.map(c => catColors[c]), borderWidth: 2, borderColor: '#fff' }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '68%',
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${fmt(ctx.raw)} impactos` } } }
+      }
+    });
+
+    // Proyección
+    charts.proj = new Chart(document.getElementById('cProj'), {
+      type: 'line',
+      data: {
+        labels: projLabels,
+        datasets: [{
+          label: 'Impactos acumulados',
+          data: projData,
+          borderColor: '#E85D24',
+          backgroundColor: 'rgba(232,93,36,0.08)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 3,
+          pointBackgroundColor: '#E85D24',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { ticks: { callback: v => fmtK(v) }, grid: { color: 'rgba(0,0,0,0.05)' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  // Eficiencia
+  charts.efic = new Chart(document.getElementById('cEfic'), {
+    type: 'bar',
+    data: {
+      labels: efCats,
+      datasets: [
+        { label: 'Inversión ($)', data: efInv, backgroundColor: cats.map(c => catColors[c]), borderRadius: 4 },
+        { label: 'Impactos', data: efImp, backgroundColor: cats.map(c => catLightColors[c]), borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: true, position: 'top', labels: { font: { family: 'DM Sans', size: 11 }, boxWidth: 10, padding: 12 } } },
+      scales: {
+        y: { ticks: { callback: v => fmtK(v) }, grid: { color: 'rgba(0,0,0,0.05)' } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  // Alcance
+  if (alcData.length && document.getElementById('cAlc')) {
+    charts.alc = new Chart(document.getElementById('cAlc'), {
+      type: 'bar',
+      data: {
+        labels: alcLabels,
+        datasets: [{ data: alcData, backgroundColor: alcColors, borderRadius: 4 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { callback: v => fmtK(v) }, grid: { color: 'rgba(0,0,0,0.05)' } },
+          y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+  }
+
+  // CPM
+  if (cpmData.length && document.getElementById('cCPM')) {
+    charts.cpm = new Chart(document.getElementById('cCPM'), {
+      type: 'bar',
+      data: {
+        labels: cpmLabels,
+        datasets: [{ data: cpmData, backgroundColor: cpmColors, borderRadius: 4 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { callback: v => `$${v}` }, grid: { color: 'rgba(0,0,0,0.05)' } },
+          y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+  }
+
+  }); // end requestAnimationFrame
+} // end renderCharts
+
+// ===== EXPORT PDF =====
+async function exportPDF() {
+  if (!selectedItems.length) { showToast('Primero agregá soportes a la cotización'); return; }
+  showToast('Generando PDF...');
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const W = 210, margin = 18;
+    let y = margin;
+    const col = '#1A1A1A';
+    const accent = '#E85D24';
+    const gray = '#8A8A8A';
+    const lineH = 6;
+
+    // Header
+    doc.setFillColor(26,26,26);
+    doc.rect(0, 0, W, 28, 'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(18);
+    doc.setFont('helvetica','bold');
+    doc.text('PROPUESTA PUBLICITARIA', margin, 13);
+    doc.setFontSize(9);
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(180,180,180);
+    doc.text(new Date().toLocaleDateString('es-UY', {year:'numeric',month:'long',day:'numeric'}), margin, 21);
+    y = 38;
+
+    // KPIs
+    const totalImpactos = selectedItems.reduce((s,i) => s + calcItem(i).impactos, 0);
+    const totalArr = selectedItems.reduce((s,i) => s + calcItem(i).arrBase, 0);
+    const totalCamp = selectedItems.reduce((s,i) => s + calcItem(i).totalCost, 0);
+    const avgCPM = totalImpactos > 0 ? (totalCamp / totalImpactos * 1000) : 0;
+
+    const kpis = [
+      ['IMPACTOS TOTALES', fmtM(totalImpactos)],
+      ['CPM PROMEDIO', avgCPM > 0 ? `$${avgCPM.toFixed(2)}` : '—'],
+      ['ARRENDAMIENTO', `$${fmt(totalArr)}`],
+      ['TOTAL CAMPAÑA', `$${fmt(totalCamp)}`]
+    ];
+    const kW = (W - margin*2) / 4;
+    kpis.forEach(([lbl, val], i) => {
+      const x = margin + i * kW;
+      doc.setFillColor(248,247,244);
+      doc.roundedRect(x, y, kW - 4, 16, 2, 2, 'F');
+      doc.setFontSize(7);
+      doc.setFont('helvetica','normal');
+      doc.setTextColor(150,150,150);
+      doc.text(lbl, x + 4, y + 5);
+      doc.setFontSize(10);
+      doc.setFont('helvetica','bold');
+      doc.setTextColor(i === 3 ? accent : col);
+      doc.text(val, x + 4, y + 12);
+    });
+    y += 24;
+
+    // Soportes
+    doc.setFontSize(11);
+    doc.setFont('helvetica','bold');
+    doc.setTextColor(col);
+    doc.text('DETALLE DE SOPORTES', margin, y);
+    y += 6;
+    doc.setDrawColor(232,93,36);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, W - margin, y);
+    y += 5;
+
+    const catColors2 = { 'Digital': [37,99,235], 'Estática': [22,163,74], 'Bus': [217,119,6] };
+
+    selectedItems.forEach((item, idx) => {
+      const s = item.soporte;
+      const c = calcItem(item);
+      if (y > 250) { doc.addPage(); y = margin; }
+
+      doc.setFillColor(248,247,244);
+      doc.roundedRect(margin, y, W - margin*2, 26, 2, 2, 'F');
+
+      const cc = catColors2[s.categoria] || [100,100,100];
+      doc.setFillColor(cc[0], cc[1], cc[2]);
+      doc.roundedRect(margin + 3, y + 3, 16, 5, 1, 1, 'F');
+      doc.setFontSize(6);
+      doc.setFont('helvetica','bold');
+      doc.setTextColor(255,255,255);
+      doc.text(s.categoria.toUpperCase(), margin + 11, y + 6.5, { align: 'center' });
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica','bold');
+      doc.setTextColor(col);
+      doc.text(s.nombre, margin + 22, y + 7);
+
+      doc.setFontSize(7);
+      doc.setFont('helvetica','normal');
+      doc.setTextColor(gray);
+      doc.text(s.ubicacion, margin + 22, y + 12);
+
+      const details = [
+        `${item.semanas} sem.`,
+        c.impactos ? `${fmt(c.impactos)} imp.` : '',
+        c.cpm ? `CPM $${c.cpm.toFixed(2)}` : ''
+      ].filter(Boolean).join('  |  ');
+      doc.text(details, margin + 22, y + 18);
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica','bold');
+      doc.setTextColor(accent);
+      doc.text(`$${fmt(c.totalCost)}`, W - margin - 3, y + 9, { align: 'right' });
+
+      doc.setFontSize(7);
+      doc.setFont('helvetica','normal');
+      doc.setTextColor(gray);
+      const sub = [];
+      if (c.ivaArr) sub.push(`IVA $${fmt(c.ivaArr)}`);
+      if (c.impMun) sub.push(`Mun $${fmt(c.impMun)}`);
+      if (c.prod) sub.push(`Prod $${fmt(c.prod + c.ivaProd)}`);
+      if (sub.length) doc.text(sub.join('  '), W - margin - 3, y + 15, { align: 'right' });
+
+      y += 30;
+    });
+
+    // Total
+    y += 4;
+    doc.setFillColor(26,26,26);
+    doc.roundedRect(margin, y, W - margin*2, 18, 3, 3, 'F');
+    doc.setFontSize(9);
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(180,180,180);
+    doc.text('TOTAL CAMPAÑA', margin + 6, y + 7);
+    doc.setFontSize(14);
+    doc.setFont('helvetica','bold');
+    doc.setTextColor(255,255,255);
+    doc.text(`$${fmt(totalCamp)}`, W - margin - 6, y + 12, { align: 'right' });
+
+    doc.save(`propuesta_publicitaria_${Date.now()}.pdf`);
+    showToast('PDF descargado correctamente');
+  } catch(e) {
+    showToast('Error al generar PDF');
+    console.error(e);
+  }
+}
+
+// ===== UTILS =====
+function fmt(n) {
+  return Math.round(n).toLocaleString('es-UY');
+}
+function fmtK(n) {
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n/1000).toFixed(0) + 'k';
+  return Math.round(n);
+}
+function fmtM(n) {
+  if (n >= 1000000) return (n/1000000).toFixed(2) + 'M';
+  if (n >= 1000) return (n/1000).toFixed(0) + 'k';
+  return n ? Math.round(n).toString() : '0';
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ===== INIT =====
+fetchSupports();
+</script>
+</body>
+</html>
