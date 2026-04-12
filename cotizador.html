@@ -4,30 +4,30 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Movimagen — Cotizador 2026</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
-  --bg:#0F0F0F;
-  --surface:#161616;
-  --surface2:#1E1E1E;
-  --surface3:#252525;
-  --border:#2A2A2A;
-  --border2:#333;
-  --o:#FF5C1A;
-  --o2:#FF7A42;
-  --o-dim:rgba(255,92,26,.12);
-  --o-dim2:rgba(255,92,26,.06);
-  --text:#F0EDE8;
-  --text2:#9A9590;
-  --text3:#5A5652;
-  --digital:#FF5C1A;
-  --shopping:#A78BFA;
-  --exterior:#34D399;
-  --bus:#FCD34D;
-  --r:5px;--r-lg:10px;--r-xl:16px;
-  --font-display:'Outfit',sans-serif;
+  --bg:#ffffff;
+  --surface:#f7f7f7;
+  --surface2:#f0f0f0;
+  --surface3:#e8e8e8;
+  --border:#e0e0e0;
+  --border2:#d0d3d4;
+  --o:#eb691c;
+  --o2:#d05a10;
+  --o-dim:rgba(235,105,28,.10);
+  --o-dim2:rgba(235,105,28,.05);
+  --text:#1a1a1a;
+  --text2:#5a5a5a;
+  --text3:#9a9a9a;
+  --digital:#eb691c;
+  --shopping:#7c5cbf;
+  --exterior:#1e9e6e;
+  --bus:#c9a000;
+  --r:4px;--r-lg:8px;--r-xl:12px;
+  --font-display:'Montserrat',sans-serif;
   --font-mono:'DM Mono',monospace;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -69,11 +69,11 @@ body{font-family:var(--font-display);background:var(--bg);color:var(--text);font
   width:28px;height:28px;background:var(--o);border-radius:4px;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
-.brand-name{font-family:var(--font-display);font-size:16px;font-weight:900;color:var(--text);letter-spacing:-.02em}
+.brand-name{font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--text);letter-spacing:-.02em;text-transform:lowercase}
 .brand-badge{
   margin-left:auto;
-  font-family:var(--font-mono);font-size:9px;color:var(--text3);
-  background:var(--surface3);border:1px solid var(--border);
+  font-family:var(--font-mono);font-size:9px;color:var(--o);
+  background:var(--o-dim);border:1px solid var(--o-dim);
   padding:2px 6px;border-radius:3px;letter-spacing:.08em;
 }
 .brand-settings{
@@ -182,8 +182,8 @@ body{font-family:var(--font-display);background:var(--bg);color:var(--text);font
 }
 .top-bar-left{display:flex;align-items:center;gap:14px}
 .top-logo{height:24px;width:auto;object-fit:contain}
-.top-title h1{font-size:17px;font-weight:800;letter-spacing:-.03em;color:var(--text);line-height:1}
-.top-title p{font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-top:2px;letter-spacing:.06em;text-transform:uppercase}
+.top-title h1{font-size:17px;font-weight:800;letter-spacing:-.03em;color:var(--text);line-height:1;text-transform:lowercase}
+.top-title p{font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-top:2px;letter-spacing:.06em}
 .top-actions{display:flex;gap:8px}
 .btn{
   padding:7px 16px;border-radius:var(--r);
@@ -324,12 +324,12 @@ body{font-family:var(--font-display);background:var(--bg);color:var(--text);font
 .summary-val{font-size:24px;font-weight:800;color:var(--text)}
 .extras{display:grid;grid-template-columns:1fr 1fr;gap:5px}
 .extra{border-radius:var(--r);padding:7px 9px}
-.extra.iva{background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2)}
-.extra.iva .el{color:#818CF8}.extra.iva .ev{color:#A5B4FC}
-.extra.mun{background:rgba(252,211,77,.08);border:1px solid rgba(252,211,77,.2)}
-.extra.mun .el{color:#FCD34D}.extra.mun .ev{color:#FDE68A}
-.extra.prod{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2)}
-.extra.prod .el{color:#34D399}.extra.prod .ev{color:#6EE7B7}
+.extra.iva{background:rgba(99,102,241,.07);border:1px solid rgba(99,102,241,.18)}
+.extra.iva .el{color:#6366f1}.extra.iva .ev{color:#4f46e5}
+.extra.mun{background:rgba(201,160,0,.07);border:1px solid rgba(201,160,0,.2)}
+.extra.mun .el{color:#a37c00}.extra.mun .ev{color:#7c5e00}
+.extra.prod{background:rgba(30,158,110,.07);border:1px solid rgba(30,158,110,.18)}
+.extra.prod .el{color:#1e9e6e}.extra.prod .ev{color:#155f43}
 .el{font-family:var(--font-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
 .ev{font-size:13px;font-weight:700}
 
@@ -433,8 +433,8 @@ body{font-family:var(--font-display);background:var(--bg);color:var(--text);font
 .toast{
   position:fixed;bottom:24px;left:50%;
   transform:translateX(-50%) translateY(20px);
-  background:var(--surface3);border:1px solid var(--border2);
-  color:var(--text);padding:9px 20px;border-radius:20px;
+  background:#1a1a1a;border:1px solid #333;
+  color:white;padding:9px 20px;border-radius:20px;
   font-size:12px;font-weight:500;opacity:0;
   transition:all .25s;pointer-events:none;z-index:9999;
   white-space:nowrap;
@@ -1004,13 +1004,13 @@ async function exportPDF() {
     const W=210,M=16; let y=M;
 
     // Header
-    doc.setFillColor(15,15,15); doc.rect(0,0,W,26,'F');
-    doc.setFillColor(255,92,26); doc.rect(0,0,4,26,'F');
-    doc.setTextColor(240,237,232); doc.setFont('helvetica','bold'); doc.setFontSize(17);
+    doc.setFillColor(235,105,28); doc.rect(0,0,W,26,'F');
+    doc.setFillColor(26,26,26); doc.rect(0,0,4,26,'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(17);
     doc.text('MOVIMAGEN',M+4,11);
-    doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(90,86,82);
+    doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(255,255,255);
     doc.text('COTIZACIÓN PUBLICITARIA 2026',M+4,18);
-    doc.setTextColor(90,86,82); doc.setFontSize(8);
+    doc.setTextColor(255,255,255); doc.setFontSize(8);
     doc.text(new Date().toLocaleDateString('es-UY',{year:'numeric',month:'long',day:'numeric'}),W-M,18,{align:'right'});
     y=36;
 
@@ -1026,21 +1026,21 @@ async function exportPDF() {
     const kW=(W-M*2)/4;
     kpis.forEach(([lbl,val],i)=>{
       const x=M+i*kW;
-      if(i===3){doc.setFillColor(255,92,26);}else{doc.setFillColor(22,22,22);}
+      if(i===3){doc.setFillColor(235,105,28);}else{doc.setFillColor(247,247,247);}
       doc.roundedRect(x,y,kW-3,18,2,2,'F');
       doc.setFontSize(7); doc.setFont('helvetica','normal');
-      doc.setTextColor(i===3?200:90,i===3?160:86,i===3?140:82);
+      doc.setTextColor(i===3?255:90,i===3?255:90,i===3?255:90);
       doc.text(lbl,x+5,y+6);
       doc.setFontSize(11); doc.setFont('helvetica','bold');
-      doc.setTextColor(i===3?255:240,i===3?255:237,i===3?255:232);
+      doc.setTextColor(i===3?255:26,i===3?255:26,i===3?255:26);
       doc.text(val,x+5,y+14);
     });
     y+=26;
 
     // Desglose inversión
-    doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(90,86,82);
+    doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(90,90,90);
     doc.text('DESGLOSE DE INVERSIÓN',M,y); y+=4;
-    doc.setDrawColor(255,92,26); doc.setLineWidth(0.3); doc.line(M,y,W-M,y); y+=5;
+    doc.setDrawColor(235,105,28); doc.setLineWidth(0.3); doc.line(M,y,W-M,y); y+=5;
 
     const desglose=[
       ['Arrendamiento base',tArrPDF],
@@ -1049,38 +1049,38 @@ async function exportPDF() {
       ...(tProdPDF>0?[['Producción e instalación',tProdPDF]]:[]),
     ];
     desglose.forEach(([lbl,val])=>{
-      doc.setFillColor(22,22,22); doc.roundedRect(M,y,W-M*2,8,1,1,'F');
-      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(90,86,82);
+      doc.setFillColor(247,247,247); doc.roundedRect(M,y,W-M*2,8,1,1,'F');
+      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(90,90,90);
       doc.text(lbl,M+5,y+5.5);
-      doc.setFont('helvetica','bold'); doc.setTextColor(240,237,232);
+      doc.setFont('helvetica','bold'); doc.setTextColor(26,26,26);
       doc.text('$'+fmt(val),W-M-5,y+5.5,{align:'right'});
       y+=10;
     });
     // Total
-    doc.setFillColor(255,92,26); doc.roundedRect(M,y,W-M*2,10,2,2,'F');
-    doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(255,200,160);
+    doc.setFillColor(235,105,28); doc.roundedRect(M,y,W-M*2,10,2,2,'F');
+    doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(255,255,255);
     doc.text('TOTAL CAMPAÑA',M+5,y+7);
     doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
     doc.text('$'+fmt(tCampPDF),W-M-5,y+7,{align:'right'});
     y+=18;
 
     // Soportes
-    doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(90,86,82);
+    doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(90,90,90);
     doc.text('DETALLE DE SOPORTES',M,y); y+=4;
-    doc.setDrawColor(255,92,26); doc.setLineWidth(0.3); doc.line(M,y,W-M,y); y+=5;
-    const catRGB={'Digital':[255,92,26],'Shopping':[167,139,250],'Exterior':[52,211,153],'Bus':[252,211,77]};
+    doc.setDrawColor(235,105,28); doc.setLineWidth(0.3); doc.line(M,y,W-M,y); y+=5;
+    const catRGB={'Digital':[235,105,28],'Shopping':[124,92,191],'Exterior':[30,158,110],'Bus':[201,160,0]};
     selectedItems.forEach(item=>{
       const s=item.soporte, c=calcItem(item);
       if(y>250){doc.addPage();y=M;}
-      doc.setFillColor(22,22,22); doc.roundedRect(M,y,W-M*2,30,2,2,'F');
+      doc.setFillColor(247,247,247); doc.roundedRect(M,y,W-M*2,30,2,2,'F');
       const cc=catRGB[s.categoria]||[100,100,100];
       doc.setFillColor(cc[0],cc[1],cc[2]);
       doc.roundedRect(M+4,y+4,16,6,1,1,'F');
       doc.setFontSize(6); doc.setFont('helvetica','bold'); doc.setTextColor(15,15,15);
       doc.text(s.categoria.toUpperCase(),M+12,y+8,{align:'center'});
-      doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(240,237,232);
+      doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(26,26,26);
       doc.text(s.nombre,M+24,y+9);
-      doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(90,86,82);
+      doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(90,90,90);
       doc.text(s.ubicacion,M+24,y+15);
       const det=[item.semanas+' sem.',c.imp?fmt(c.imp)+' imp.':'',c.cpm?'CPM $'+c.cpm.toFixed(2):''].filter(Boolean).join('  ·  ');
       doc.text(det,M+24,y+21);
@@ -1090,7 +1090,7 @@ async function exportPDF() {
       if(c.mun) itemSub.push('Mun $'+fmt(c.mun));
       if(c.prod) itemSub.push('Prod $'+fmt(c.prod+c.ivaProd));
       if(itemSub.length) doc.text(itemSub.join('  '),W-M-5,y+22,{align:'right'});
-      doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.setTextColor(255,92,26);
+      doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.setTextColor(235,105,28);
       doc.text('$'+fmt(c.tot),W-M-5,y+11,{align:'right'});
       y+=34;
     });
@@ -1112,9 +1112,9 @@ async function exportPDF() {
         if(y>210||chartsAdded===0){
           if(chartsAdded===0){
             y+=4;
-            doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(90,86,82);
+            doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(90,90,90);
             doc.text('VISUALIZACIONES',M,y); y+=4;
-            doc.setDrawColor(255,92,26); doc.setLineWidth(0.3); doc.line(M,y,W-M,y); y+=6;
+            doc.setDrawColor(235,105,28); doc.setLineWidth(0.3); doc.line(M,y,W-M,y); y+=6;
           } else {
             doc.addPage(); y=M;
           }
@@ -1122,8 +1122,8 @@ async function exportPDF() {
         const imgData=canvas.toDataURL('image/png',0.92);
         const aspect=canvas.height/canvas.width;
         const imgW=W-M*2, imgH=Math.min(imgW*aspect,70);
-        doc.setFillColor(22,22,22); doc.roundedRect(M,y,imgW,imgH+10,2,2,'F');
-        doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(90,86,82);
+        doc.setFillColor(247,247,247); doc.roundedRect(M,y,imgW,imgH+10,2,2,'F');
+        doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(90,90,90);
         doc.text(title.toUpperCase(),M+4,y+7);
         doc.addImage(imgData,'PNG',M+2,y+10,imgW-4,imgH);
         y+=imgH+16; chartsAdded++;
