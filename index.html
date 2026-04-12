@@ -687,10 +687,10 @@ body{font-family:var(--font-display);background:#ffffff;color:#1a1a1a;font-size:
     </div>
     <div class="admin-body">
       <div class="admin-key-row">
-        <label>API Key Anthropic — Asistente IA</label>
-        <div class="admin-key-row-inner">
-          <input class="admin-key-field" type="password" id="adminApiKey" placeholder="sk-ant-api03-...">
-          <button class="btn btn-primary" style="padding:7px 14px;font-size:12px" onclick="saveApiKey()">Guardar</button>
+        <label>Asistente IA — Estado</label>
+        <div style="font-size:11px;color:var(--text2);line-height:1.6;font-family:var(--font-mono)">
+          La API key de Anthropic se configura como secreto en Supabase Edge Functions.<br>
+          <span style="color:var(--o)">ANTHROPIC_API_KEY</span> en el panel de Supabase → Edge Functions → Secrets.
         </div>
       </div>
       <input class="admin-search" id="adminSearch" placeholder="Buscar soporte..." oninput="renderAdminList()">
@@ -1099,9 +1099,6 @@ function checkAdminPass() {
 }
 function openAdmin() {
   renderAdminList();
-  const k = getChatKey();
-  const f = document.getElementById('adminApiKey');
-  if (f) f.placeholder = k ? '••••••••••••••• (guardada)' : 'sk-ant-api03-...';
   document.getElementById('adminOverlay').style.display='flex';
 }
 function closeAdmin() { document.getElementById('adminOverlay').style.display='none'; }
@@ -1286,20 +1283,11 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 
 // ═══ CHAT ASISTENTE IA ═══
 const CHAT_MODEL = 'claude-haiku-4-5-20251001';
-const CHAT_API   = 'https://api.anthropic.com/v1/messages';
+const CHAT_API   = `${SUPABASE_URL}/functions/v1/chat-proxy`;
 let chatHistory  = [];
 let chatBusy     = false;
 
-function getChatKey() { return localStorage.getItem('mv_chat_key') || ''; }
-function setChatKey(k) { localStorage.setItem('mv_chat_key', k.trim()); }
-
-function saveApiKey() {
-  const k = document.getElementById('adminApiKey').value.trim();
-  if (!k) { toast('Ingresá una API key válida'); return; }
-  setChatKey(k);
-  document.getElementById('adminApiKey').value = '';
-  toast('API key guardada ✓');
-}
+function getChatKey() { return SUPABASE_KEY; }
 
 function buildSystemPrompt() {
   const catalog = allSupports.map(s => {
@@ -1373,10 +1361,6 @@ async function sendChatMsg(){
   const input=document.getElementById('chatInput');
   const msg=input.value.trim();
   if(!msg) return;
-  if(!getChatKey()){
-    appendMsg('error','No hay API key configurada. Abrí la configuración (ícono ⚙ en el sidebar), ingresá tu API key de Anthropic y guardá. Luego podés usar el asistente.');
-    return;
-  }
   input.value=''; chatBusy=true;
   document.getElementById('chatSendBtn').disabled=true;
   appendMsg('user',msg);
@@ -1387,9 +1371,7 @@ async function sendChatMsg(){
       method:'POST',
       headers:{
         'Content-Type':'application/json',
-        'x-api-key':getChatKey(),
-        'anthropic-version':'2023-06-01',
-        'anthropic-beta':'prompt-caching-2024-07-31'
+        'Authorization':'Bearer '+SUPABASE_KEY
       },
       body:JSON.stringify({
         model:CHAT_MODEL,
@@ -1401,7 +1383,8 @@ async function sendChatMsg(){
     loadEl.remove();
     if(!res.ok){
       const err=await res.json().catch(()=>({}));
-      if(res.status===401) throw new Error('API key inválida. Revisala en configuración (⚙).');
+      if(res.status===500&&err.error?.message?.includes('ANTHROPIC_API_KEY'))
+        throw new Error('El asistente no está activado. Configurá el secreto ANTHROPIC_API_KEY en Supabase Edge Functions.');
       throw new Error(err.error?.message||'Error HTTP '+res.status);
     }
     const data=await res.json();
