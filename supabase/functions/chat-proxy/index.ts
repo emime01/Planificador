@@ -1,5 +1,3 @@
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
-
 const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages';
 
 const CORS = {
@@ -8,31 +6,31 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { ...CORS, 'Content-Type': 'application/json' },
-  });
-}
-
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: CORS });
   }
+
   if (req.method !== 'POST') {
-    return json({ error: { message: 'Method not allowed' } }, 405);
+    return new Response(JSON.stringify({ error: { message: 'Method not allowed' } }), {
+      status: 405, headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
   }
 
   try {
     const body = await req.json();
 
     if (!body.messages || !Array.isArray(body.messages)) {
-      return json({ error: { message: 'messages array required' } }, 400);
+      return new Response(JSON.stringify({ error: { message: 'messages array required' } }), {
+        status: 400, headers: { ...CORS, 'Content-Type': 'application/json' },
+      });
     }
 
     const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
     if (!apiKey) {
-      return json({ error: { message: 'ANTHROPIC_API_KEY secret not configured in Supabase.' } }, 500);
+      return new Response(JSON.stringify({ error: { message: 'ANTHROPIC_API_KEY not configured' } }), {
+        status: 500, headers: { ...CORS, 'Content-Type': 'application/json' },
+      });
     }
 
     const upstream = await fetch(ANTHROPIC_API, {
@@ -52,9 +50,14 @@ serve(async (req: Request) => {
     });
 
     const data = await upstream.json();
-    return json(data, upstream.status);
+    return new Response(JSON.stringify(data), {
+      status: upstream.status,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
 
   } catch (e) {
-    return json({ error: { message: String(e) } }, 500);
+    return new Response(JSON.stringify({ error: { message: String(e) } }), {
+      status: 500, headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
   }
 });
