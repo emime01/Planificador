@@ -1376,7 +1376,7 @@ async function sendChatMsg(){
       body:JSON.stringify({
         model:CHAT_MODEL,
         max_tokens:1800,
-        system:[{type:'text',text:buildSystemPrompt(),cache_control:{type:'ephemeral'}}],
+        system:buildSystemPrompt(),
         messages:chatHistory
       })
     });
